@@ -7,9 +7,13 @@ func main() {
 
 	// calculation()
 
-	deadlock()
+	// deadlock()
 
-	loop1()
+	// loop1()
 
-	loop2()
+	// loop2()
+
+	// iterate_process()
+
+	parallel_process()
 }
