@@ -33,6 +33,7 @@ func iterate_process() {
 
 func parallel_process() {
 	c := make(chan os.Signal, 1)
+	s := make(chan int, 1)
 	signal.Notify(c, syscall.SIGINT)
 
 	workers := 10
@@ -57,8 +58,15 @@ func parallel_process() {
 				}
 				select {
 				case w := <-workChan:
+					if 111 == w {
+						s <- w
+						close(s)
+						return
+					}
 					process(w)
 					bar.Increment()
+				case _ = <-s:
+					return
 				default:
 					return
 				}
