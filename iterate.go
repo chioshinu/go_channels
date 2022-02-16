@@ -32,15 +32,17 @@ func iterate_process() {
 }
 
 func parallel_process() {
+	workers := 10
 	c := make(chan os.Signal, 1)
-	s := make(chan int, 1)
+	t := make(chan int, 1)
+	workChan := make(chan int, 1000)
+
 	signal.Notify(c, syscall.SIGINT)
 
-	workers := 10
-	workChan := make(chan int, 1000)
 	for i := 0; i < 1000; i++ {
 		workChan <- i
 	}
+
 
 	bar := pb.New(1000)
 	bar.Start()
@@ -52,21 +54,18 @@ func parallel_process() {
 	for i := 0; i < workers; i++ {
 		go func(bar *pb.ProgressBar) {
 			defer wg.Done()
+			cancelled(c, t)
 			for {
-				if len(c) != 0 {
+				if cancelled(c, t) {
 					return
 				}
 				select {
 				case w := <-workChan:
-					if 111 == w {
-						s <- w
-						close(s)
-						return
+					if w < 30 {
+						t <- w
 					}
 					process(w)
 					bar.Increment()
-				case _ = <-s:
-					return
 				default:
 					return
 				}
@@ -75,4 +74,13 @@ func parallel_process() {
 	}
 	wg.Wait()
 	bar.Finish()
+	fmt.Println("All goroutines stopped")
+}
+
+func cancelled(c chan os.Signal, t chan int) bool {
+	if len(c) != 0 || len(t) != 0 {
+		return true
+	}
+
+	return false
 }
