@@ -79,6 +79,7 @@ func parallel_process() {
 
 func cancelled(c chan os.Signal, t chan int) bool {
 	if len(c) != 0 || len(t) != 0 {
+		<-t
 		return true
 	}
 
